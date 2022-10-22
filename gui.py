@@ -3,18 +3,29 @@ from functools import partial
 import tkinter as tk
 import tkinter.ttk as ttk
 import game
-from game_enums import gen_ID
+from constants import gen_ID, TICK_SCALAR
 
-STEP_SIZE = 10
 
 app = game.Game()
+ms = int(TICK_SCALAR * 1000)
+
+# Set window placement
 window = tk.Tk()
+w = 400
+h = 200
+ws = window.winfo_screenwidth()
+hs = window.winfo_screenheight()
+
+x = ws/2 - w/2
+y = hs/2.5 - h/2
+
+window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
 def run_game_loop():
     """Runs one step of the game loop and recurses"""
     app.game_loop()
     lbl_power["text"] = f"{app.currency:.2f}"
-    window.after(STEP_SIZE, run_game_loop)
+    window.after(ms, run_game_loop)
 
 def buy_button(g_ID: gen_ID, amt: int, lbl:ttk.Label, btn:ttk.Button):
     app.buy_generator(g_ID, amt)
@@ -23,7 +34,7 @@ def buy_button(g_ID: gen_ID, amt: int, lbl:ttk.Label, btn:ttk.Button):
 
     
 
-lbl_power = ttk.Label(window, text="10")
+lbl_power = ttk.Label(window, text="10", width=20)
 lbl_gen1 = ttk.Label(window, text="Gen1")
 lbl_gen1_amt = ttk.Label(window, text="0")
 btn_gen1_buy = ttk.Button(window, text=app.generators[gen_ID.PC1].cost)
@@ -34,5 +45,5 @@ lbl_gen1.grid(row=1, column=0)
 lbl_gen1_amt.grid(row=1, column=1)
 btn_gen1_buy.grid(row=1, column=2)
 
-window.after(STEP_SIZE, run_game_loop)
+window.after(ms, run_game_loop)
 window.mainloop()
