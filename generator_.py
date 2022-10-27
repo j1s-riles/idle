@@ -1,9 +1,11 @@
+from abc import abstractmethod, ABC
 import math
 from constants import gen_type, TICK_SCALAR
 
-class Generator():
-    def __init__(self, gen_type: gen_type, production_rate: float, initial_cost: float, cost_scalar: float, multiplier=1.0, quantity=0):
-        self.gen_type = gen_type
+class Generator_(ABC):
+    def __init__(self, target, production_rate: float, 
+        initial_cost: float, cost_scalar: float, multiplier: float, quantity:int):
+        self.target = target
         self.production_rate = production_rate
         self.initial_cost = initial_cost
         self.cost = initial_cost
@@ -11,6 +13,8 @@ class Generator():
         self.multiplier = multiplier
         self.quantity = quantity
         self.quantity_purchased = 0
+        self.quantity_next = 0
+        self.multiplier_next = 1
 
     def buy(self, amt: int, currency) -> float:
         """Attempt to buy a specified number of this generator. Returns the currency remaining after purchase. 
@@ -43,17 +47,36 @@ class Generator():
 
         return math.floor(math.log(((currency *  (r-1))/b*r**k) + 1, r))
 
-    def reset_quantity(self) -> None:
-        """Resets this generator for prestige. Returns the new quantity"""
-        self.quantity = 0
-        self.quantity_purchased = 0
-
-    def generate(self) -> float:
+    def find_generation_value(self) -> float:
         """Returns the final production value for a single step of generation"""
         return self.production_rate * self.quantity * self.multiplier * TICK_SCALAR
 
+    def finalize_increases(self) -> None:
+        """Updates any properties modified this tick."""
+        self.quantity += self.quantity_next
+        self.multiplier *= self.multiplier_next
 
+        self.quantity_next = 0
+        self.multiplier_next = 1
 
+    @abstractmethod
+    def generate(self) -> None:
+        pass
+
+class CurrencyGenerator(Generator_):
+    def generate(self) -> None:
+        """Generates target currency"""
+        self.target.quantity += self.find_generation_value()
+
+class GeneratorGenerator(Generator_):
+    def generate(self) -> None:
+        """Generates target generator"""
+        self.target.quantity_next += self.find_generation_value()
+
+class MultiplierGenerator(Generator_):
+    def generate(self) -> None:
+        """Generates target multiplier"""
+        self.target.multiplier_next *= self.find_generation_value()
     
 
     
