@@ -6,6 +6,8 @@ class Slime(ABC):
     def __init__(self, slimetype: slime_type, targets:dict, quantity=0) -> None:
         self.slimetype = slimetype
         self.quantity = quantity
+        self.quantity_next = 0
+        self.quantity_purchased = 0
         self.generators = []
         self.generator_factory = GeneratorFactory()
         self._build_generators(targets)
@@ -41,6 +43,7 @@ class Slime(ABC):
             gen.buy(amt)
         
         self.quantity += amt
+        self.quantity_purchased += amt
 
         return total_price
 
@@ -50,9 +53,12 @@ class Slime(ABC):
             gen.generate()
 
     def finalize_all(self):
-        """Finalize generation updates on all of this slime's generators"""
+        """Finalize generation updates on all of this slime's generators, as well as slime increases"""
         for gen in self.generators:
             gen.finalize_increases()
+
+        self.quantity += self.quantity_next
+        self.quantity_next = 0
 
     @abstractmethod
     def _build_generators(self, targets) -> None:
@@ -70,8 +76,21 @@ class GreenSlime(Slime):
             cost_scalar=1.05
             )
 
+class RedSlime(Slime):
+    def _build_generators(self, targets) -> None:
+        self.add_generator(
+            type=gen_type.SLIME_GEN,
+            target=targets[slime_type.GREEN],
+            production_rate=1.00001,
+            initial_cost=100.0,
+            cost_scalar=1.5
+        )
+
 class SlimeFactory():
     def get_slime(self, slimetype:slime_type, targets:dict) -> Slime:
         """Returns a new slime of the specified type with specified generation targets"""
-        if slimetype == slime_type.GREEN:
+        if slimetype is slime_type.GREEN:
             return GreenSlime(slimetype=slimetype, targets=targets)
+
+        if slimetype is slimetype.RED:
+            return RedSlime(slimetype=slimetype, targets=targets)

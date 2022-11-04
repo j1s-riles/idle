@@ -14,6 +14,10 @@ class Game():
             slimetype=slime_type.GREEN,
             targets={slime_type.GEL:self.gel}
         )
+        self.slimes[slime_type.RED] = self.slimefactory.get_slime(
+            slimetype=slime_type.RED,
+            targets={slime_type.GREEN:self.slimes[slime_type.GREEN]}
+        )
         
 
     def game_loop(self):

@@ -68,6 +68,11 @@ class GeneratorGenerator(Generator_):
         """Generates target generator"""
         self.target.quantity_next += self.find_generation_value()
 
+class SlimeGenerator(Generator_):
+    def generate(self) -> None:
+        """Generates target slime"""
+        self.target.quantity_next += self.find_generation_value()
+
 class MultiplierGenerator(Generator_):
     def generate(self) -> None:
         """Generates target multiplier"""
@@ -80,6 +85,16 @@ class GeneratorFactory:
         """Returns a new generator of specified type"""
         if gen_type is gen_type.PC_GEN:
             return CurrencyGenerator(
+                target=target,
+                production_rate=production_rate,
+                initial_cost=initial_cost,
+                cost_scalar=cost_scalar,
+                multiplier=multiplier,
+                quantity=quantity
+            )
+
+        if gen_type is gen_type.SLIME_GEN:
+            return SlimeGenerator(
                 target=target,
                 production_rate=production_rate,
                 initial_cost=initial_cost,
