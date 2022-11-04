@@ -3,7 +3,7 @@ from functools import partial
 import tkinter as tk
 import tkinter.ttk as ttk
 import game
-from constants import gen_ID, TICK_SCALAR
+from constants import slime_type, TICK_SCALAR
 
 
 app = game.Game()
@@ -24,21 +24,21 @@ window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 def run_game_loop():
     """Runs one step of the game loop and recurses"""
     app.game_loop()
-    lbl_power["text"] = f"{app.currency.quantity:.2f}"
+    lbl_power["text"] = f"{app.gel.quantity:.2f}"
     window.after(ms, run_game_loop)
 
-def buy_button(g_ID: gen_ID, amt: int, lbl:ttk.Label, btn:ttk.Button):
-    app.buy_generator(g_ID, amt)
-    lbl["text"] = app.generators[g_ID].quantity
-    btn["text"] = floor(app.generators[g_ID].cost)
+def buy_button(slimetype:slime_type, amt: int, lbl:ttk.Label, btn:ttk.Button):
+    app.buy_slimes(slimetype=slimetype, amt=amt)
+    lbl["text"] = app.slimes[slimetype].quantity
+    btn["text"] = floor(app.slimes[slimetype].price_check(1))
 
     
 
 lbl_power = ttk.Label(window, text="10", width=20)
-lbl_gen1 = ttk.Label(window, text="Gen1")
+lbl_gen1 = ttk.Label(window, text="Green")
 lbl_gen1_amt = ttk.Label(window, text="0")
-btn_gen1_buy = ttk.Button(window, text=app.generators[gen_ID.SLIME_GREEN].cost)
-btn_gen1_buy["command"] = partial(buy_button, gen_ID.SLIME_GREEN, 1, lbl_gen1_amt, btn_gen1_buy)
+btn_gen1_buy = ttk.Button(window, text=app.slimes[slime_type.GREEN].price_check(1))
+btn_gen1_buy["command"] = partial(buy_button, slime_type.GREEN, 1, lbl_gen1_amt, btn_gen1_buy)
 
 lbl_power.grid(row=0, column=0)
 lbl_gen1.grid(row=1, column=0)

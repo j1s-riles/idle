@@ -16,28 +16,23 @@ class Generator_(ABC):
         self.quantity_next = 0
         self.multiplier_next = 1
 
-    def buy(self, amt: int, currency) -> float:
-        """Attempt to buy a specified number of this generator. Returns the currency remaining after purchase. 
-        Returns -1 on failure."""
+    def price_check(self, amt: int) -> float:
+        """Finds the cost of buying a specified number of generators"""
         b = self.initial_cost
         r = self.cost_scalar
         k = self.quantity_purchased
 
         # Calculate the cost of buying generators in bulk
-        bulk_cost = b * (r ** k * (r**amt - 1)/ (r - 1))
-        # Guard if player can't afford
-        if bulk_cost > currency:
-            return -1
+        return b * (r ** k * (r**amt - 1)/ (r - 1))
 
-        # Transaction
-        new_currency = currency - bulk_cost
+    def buy(self, amt: int) -> None:
+        """Increase the quantity and cost of generators"""
         self.quantity += amt
         self.quantity_purchased += amt
 
         # Update cost to next step     
-        self.cost = b * r**k
+        self.cost = self.initial_cost * self.cost_scalar**self.quantity_purchased
         
-        return new_currency
 
     def get_max_buy(self, currency: float) -> int:
         """Finds the maximum number of generators it's possible to buy with the given currency."""
@@ -77,6 +72,38 @@ class MultiplierGenerator(Generator_):
     def generate(self) -> None:
         """Generates target multiplier"""
         self.target.multiplier_next *= self.find_generation_value()
-    
 
-    
+
+class GeneratorFactory:
+    def get_generator(self, gen_type:gen_type, target, production_rate: float, 
+        initial_cost: float, cost_scalar: float, multiplier=1.0, quantity=0):
+        """Returns a new generator of specified type"""
+        if gen_type is gen_type.PC_GEN:
+            return CurrencyGenerator(
+                target=target,
+                production_rate=production_rate,
+                initial_cost=initial_cost,
+                cost_scalar=cost_scalar,
+                multiplier=multiplier,
+                quantity=quantity
+            )
+
+        if gen_type is gen_type.GEN_GEN:
+            return GeneratorGenerator(
+                target=target,
+                production_rate=production_rate,
+                initial_cost=initial_cost,
+                cost_scalar=cost_scalar,
+                multiplier=multiplier,
+                quantity=quantity
+            )
+
+        if gen_type is gen_type.MULTI_GEN:
+            return MultiplierGenerator(
+                target=target,
+                production_rate=production_rate,
+                initial_cost=initial_cost,
+                cost_scalar=cost_scalar,
+                multiplier=multiplier,
+                quantity=quantity
+            )
