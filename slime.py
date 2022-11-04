@@ -8,6 +8,9 @@ class Slime(ABC):
         self.quantity = quantity
         self.quantity_next = 0
         self.quantity_purchased = 0
+        self.multiplier = 1.0
+        self.multiplier_next = 1.0
+        self.next_jump = 10
         self.generators = []
         self.generator_factory = GeneratorFactory()
         self._build_generators(targets)
@@ -36,11 +39,17 @@ class Slime(ABC):
         total_price = self.price_check(amt=amt)
         if total_price > currency:
             return 0.0
-        
+
+        # Handle trickle-down buy-10 multiplier jumps
+        while self.quantity_purchased + amt >= self.next_jump:
+            self.next_jump += 10
+            self.multiplier_next *= 1.25
+
         # Buy
         new_currency = currency - total_price
         for gen in self.generators:
             gen.buy(amt)
+            gen.multiplier_next *= self.multiplier_next
         
         self.quantity += amt
         self.quantity_purchased += amt
@@ -57,8 +66,10 @@ class Slime(ABC):
         for gen in self.generators:
             gen.finalize_increases()
 
+        self.multiplier *= self.multiplier_next
+        self.multiplier_next = 1.0
         self.quantity += self.quantity_next
-        self.quantity_next = 0
+        self.quantity_next = 0.0
 
     @abstractmethod
     def _build_generators(self, targets) -> None:
